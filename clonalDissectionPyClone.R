@@ -28,7 +28,6 @@ run.pyclone          <- FALSE
 
 if(interactive)
 {
-  full.patient         <- "D_LMS025"
   patient              <- "LMS025"
   saveDir              <- "~/Documents/Work/AnalysisPipeline/" 
   ascatDir             <- "~/Documents/Work/AnalysisPipeline/ASCAT/"
@@ -522,6 +521,41 @@ determinePhylogeny(regionList = phylo.region.list
 )
 
 dev.off()
+
+# Finally, let's add the results back to the mutation table
+mut.table$PreClusterCCF   <- NA
+mut.table$PostClusterCCF  <- NA
+mut.table$PyCloneCluster  <- NA
+mut.table$MutCopyNum      <- NA
+
+PreClusterCCF <- rep(NA,nrow(mut.table))
+names(PreClusterCCF) <- mut.table$mutation_id
+PostClusterCCF       <- PreClusterCCF
+PyCloneCluster       <- PreClusterCCF
+MutCopyNum           <- PreClusterCCF
+
+PrephyloCCF         <- phylo.region.list[[1]]$phyloCCF
+names(PrephyloCCF)  <- phylo.region.list[[1]]$mutation_id
+PostphyloCCF        <- phylo.region.list[[1]]$phyloCCF_PyClone
+names(PostphyloCCF) <- phylo.region.list[[1]]$mutation_id
+mutcopyNum          <- phylo.region.list[[1]]$mutCopyNum
+names(mutcopyNum)   <- phylo.region.list[[1]]$mutation_id
+
+PreClusterCCF[names(PrephyloCCF)] <- PrephyloCCF
+PostClusterCCF[names(PostphyloCCF)] <- PostphyloCCF
+PyCloneCluster[names(most.likely.cluster)] <- most.likely.cluster
+MutCopyNum[names(mutcopyNum)] <- mutcopyNum
+
+
+mut.table$PreClusterCCF  <- PreClusterCCF
+mut.table$PostClusterCCF <- PostClusterCCF
+mut.table$PyCloneCluster <- PyCloneCluster
+mut.table$MutCopyNum     <- MutCopyNum
+
+# let's write the new mutation table to the new directory
+
+write.table(mut.table, file=paste(new.dir,patient,".clonalDissection.txt",sep=""),quote=FALSE,sep="\t",col.names=NA)
+
 
 # Finally, let's put this into a megatable, and write this to an appropriate place
 save(phylo.region.list,file=paste(new.dir,sample,'.PhyloRegionList.RData',sep=""))
