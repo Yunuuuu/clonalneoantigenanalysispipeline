@@ -6,6 +6,10 @@ suppressPackageStartupMessages(library(gplots))
 suppressPackageStartupMessages(library(gdata))
 suppressPackageStartupMessages(library(RColorBrewer))
 suppressPackageStartupMessages(library(wordcloud))
+suppressPackageStartupMessages(library(sequenza))
+suppressPackageStartupMessages(library(bootstrap))
+suppressPackageStartupMessages(library(boot))
+
 options(expressions = 500000)
 
 ############################################################################################### Command line arguments
@@ -17,8 +21,9 @@ ascatDir            <- cmdArgs[3];
 snvDir              <- cmdArgs[4];
 PyClone             <- cmdArgs[5];
 template.config.yaml     <- cmdArgs[6];
+PyCloneFunctions    <- cmdArgs[7]
 
-interactive          <- TRUE
+interactive          <- FALSE
 run.pyclone          <- FALSE
 
 # IMPORTANT #
@@ -34,11 +39,12 @@ if(interactive)
   snvDir               <- "~/Documents/Work/AnalysisPipeline/SNV/"  
   PyClone              <- "/farm/babs/redhat6/software/python/bin/PyClone"
   template.config.yaml <- "~/Documents/Work/AnalysisPipeline/template.config.yaml"
+  PyCloneFunctions     <- "~/Documents/Work/AnalysisPipeline/clonalDissectionFunctions.R"
 }
 
 #######  Source helper functions ######
 
-source("~/Documents/Work/AnalysisPipeline/clonalDissectionFunctions.R")
+source(PyCloneFunctions)
 
 
 ########  Define your own parameters  ##########
