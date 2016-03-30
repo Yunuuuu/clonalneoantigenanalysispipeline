@@ -24,4 +24,4 @@ An example implementation of the script is as follows:
 
 /usr/bin/Rscript ~/Downloads/ExampleFiles/clonalDissectionPyClone.R LMS025 ~/Documents/Work/AnalysisPipeline/ ~/Downloads/ExampleFiles/ASCAT/ ~/Downloads/ExampleFiles/SNV/ /farm/babs/redhat6/software/python/bin/PyClone ~/Downloads/ExampleFiles/template.config.yaml ~/Downloads/ExampleFiles/clonalDissectionFunctions.R
 
-This analysis pipeline was implemented in the paper https://www.ncbi.nlm.nih.gov/pubmed/?term=26940869. If you use this tool, please cite this paper. The results on each patient used, can be found at: https://bitbucket.org/nmcgranahan/clonalneoantigenanalysispipeline/downloads
+This analysis pipeline was implemented in the paper https://www.ncbi.nlm.nih.gov/pubmed/?term=26940869. If you use this tool, please cite this paper. The results on each tumour used, can be found at: https://bitbucket.org/nmcgranahan/clonalneoantigenanalysispipeline/downloads
