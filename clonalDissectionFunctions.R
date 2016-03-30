@@ -1,15 +1,6 @@
 # The following scripts are required for implementation of PyClone analysis
 # scipt N.L.McGranahan 
 
-# updates needed:
-# include sex chromosomes
-
-# script log:
-# 27/04/15 scripting begins
-
-
-
-
 identify.subclonal.mut.copy.number.ascat <- function(x,sub.mat.mut, sub.mat.copy,region,sample,sex='male')
 {
   
@@ -406,7 +397,6 @@ subclonalDissection <- function(region
     }
   }
   # Next, let's deal with potentially amplified mutations
-  # convert MCN to subclonal fraction - tricky for amplified mutations
   # test for mutations in more than 1 copy
   
   
@@ -594,7 +584,7 @@ create.subclonal.copy.number <- function(seg.mat.copy
   {
     seg.region <- seg.out[seg.out$SampleID==region,,drop=FALSE]
     prop.aber  <- 1-length(which((seg.region$fracMaj1==1|seg.region$fracMaj1==0)&(seg.region$fracMin1==1|seg.region$fracMin1==0)))/nrow(seg.region)
-    print(prop.aber)
+    #print(prop.aber)
   }
   
   # which ones work?
@@ -1390,226 +1380,11 @@ plot.region  <- function(phylo.region.list
 
 
 
-plot.simpleClusters    <- function( seg.mat.patient
-                                    , TCGA.earlyLate
-                                    #, TCGA.purity
-                                    , TCGA.barcode=""
-                                    #, prob.early=0.75
-                                    #, prob.late=0.75
-                                    , max.cpn = 5
-                                    , min.probes = 10
-                                    , sub.clonal = 1
-                                    , min.vaf.present = 0.01
-                                    , most.likely.cluster
-                                    ,cluster=NA
-                                    
-)
-{
-  
-  
-  seg.mat.patient$Chromosome    <- as.numeric(as.character(seg.mat.patient$Chromosome))
-  seg.mat.patient$StartPosition <- as.numeric(as.character(seg.mat.patient$StartPosition))
-  seg.mat.patient$EndPosition   <- as.numeric(as.character(seg.mat.patient$EndPosition))
-  seg.mat.patient$nr.probes     <- as.numeric(as.character(seg.mat.patient$nr.probes))
-  
-  chrom.length.copy   <- fun.chrom.length(seg.mat.patient[,2:4])
-  chrom.segs          <- fun.add.chrom(seg.mat.patient[,2:4],chrom.length.copy)
-  seg.mat.plot        <- seg.mat.patient
-  seg.mat.plot[,2:4]  <- chrom.segs
-  major               <- seg.mat.plot$Copy.Number - seg.mat.plot$min.allele
-  seg.mat.plot        <- cbind(seg.mat.plot,major)
-  #seg.mat.plot        <- seg.mat.plot[seg.mat.plot$nr.probes>=min.probes,]
-  
-  
-  # Order correctly
-  TCGA.plot          <- TCGA.earlyLate
-  Chromosome         <- as.numeric(do.call(rbind,strsplit(unlist(TCGA.earlyLate$mutation_id),split=":"))[,2])
-  Start_pos          <- as.numeric(do.call(rbind,strsplit(unlist(TCGA.earlyLate$mutation_id),split=":"))[,3])
-  TCGA.plot          <- cbind(TCGA.plot,Chromosome,Start_pos)
-  TCGA.plot          <- data.frame(apply(TCGA.plot,2,unlist),stringsAsFactors=FALSE)
-  
-  min.x               <- 0
-  min.y               <- -0.25
-  max.y               <- max.cpn +1
-  max.x               <- as.numeric(max(seg.mat.plot$EndPosition))
-  
-  # Make sure any copy numbers that are too high are still included
-  seg.mat.plot$major       <- ifelse(seg.mat.plot$major>max.cpn,max.cpn,seg.mat.plot$major)
-  seg.mat.plot$min.allele  <- ifelse(seg.mat.plot$min.allele>max.cpn,max.cpn,seg.mat.plot$min.allele)
-  TCGA.plot$mut.multi      <- ifelse(TCGA.plot$mut.multi>max.cpn,max.cpn,TCGA.plot$mut.multi)
-  
-  #layout(rbind(1,2))
-  #par(mar=c(5,5,5,5))
-  plot(1
-       ,xlim=c(min.x,max.x)
-       ,ylim=c(min.y,max.y)
-       ,type='n'
-       ,xaxt='n'
-       ,yaxs='i'
-       ,yaxt='n'
-       ,xaxs='i'
-       ,ylab=""
-       ,xlab=""
-       ,lwd=2
-       # ,main=region
-       ,bty="n")
-  
-  box(lwd=0.5) 
-  
-  axis(side=2
-       ,at=seq(0,max.cpn,by=1)
-       ,labels = c(seq(0,max.cpn-1,by=1),paste('>',max.cpn,sep=""))
-       ,las=2
-       ,cex.axis=0.7
-       ,lwd=0.5)
-  
-  mtext(text=TCGA.barcode
-        ,side=3
-        ,line=2
-  )
-  
-  
-  
-  # Now plot each segment
-  fun.plot.segment <- function(x,seg.mat.plot)
-  {
-    #print(x)
-    #start with major allele
-    x0 <- as.numeric(seg.mat.plot[x,'StartPosition'])
-    x1 <- as.numeric(seg.mat.plot[x,'EndPosition'])
-    y0 <- seg.mat.plot[x,'major']+0.05
-    y1 <- y0
-    #     if(y1>=1)
-    #     {
-    #       for (i in 1:(y1-1))
-    #         segments(x0,i+0.05,x1,i+0.05
-    #                  ,col="#00000090"
-    #                  ,lwd=1.4
-    #                  ,lty='dotted')
-    #     }
-    #     
-    
-    segments(x0,y0,x1,y1,col='black',lwd=2.4)
-    
-    x0 <- as.numeric(seg.mat.plot[x,'StartPosition'])
-    x1 <- as.numeric(seg.mat.plot[x,'EndPosition'])
-    y0 <- as.numeric(seg.mat.plot[x,'min.allele'])-0.05
-    y1 <- y0
-    
-    #     if(y1>=1)
-    #     {
-    #       for (i in 1:(y1-1))
-    #         segments(x0,i-0.05,x1,i-0.05
-    #                  ,col="#009E7395"
-    #                  ,lwd=1.4
-    #                  ,lty='dotted')
-    #     }  
-    
-    #  
-    segments(x0,y0,x1,y1,col='#009E73',lwd=2.4)
-    
-  }
-  
-  sapply(1:nrow(seg.mat.plot),fun.plot.segment,seg.mat.plot)
-  # Draw lines to separate the different chromosomes
-  for (i in sort(unique(as.numeric(seg.mat.plot$Chromosome))))
-  {
-    abline(v=max(as.numeric(seg.mat.plot[seg.mat.plot$Chromosome==i,'EndPosition']))
-           ,lwd=0.5)
-    #,lty='dashed')
-  }
-  
-  # We need to update the 
-  TCGA.plot          <- TCGA.plot[order(as.numeric(TCGA.plot$Chromosome),as.numeric(TCGA.plot$Start_pos)),]
-  TCGA.plot$Start_pos <- as.numeric(fun.add.chrom(cbind(TCGA.plot$Chromosome,TCGA.plot$Start_pos,TCGA.plot$Start_pos),chrom.length.copy)[,2])
-  
-  
-  max.cols = 12
-  require(RColorBrewer)
-  no.optima      = length(unique(most.likely.cluster))
-  cols           = paste(brewer.pal(min(max.cols,no.optima),name="Paired"),sep="")
-  cols           = rep(cols,ceiling(no.optima/max.cols))[1:no.optima]
-  cols.opac      = paste(cols,'99',sep="")
-  
-  pch.vals       = c()
-  k <- 21
-  m <- 1  
-  while(m<=no.optima)
-  {
-    pch.vals    = c(pch.vals,k)
-    if (m==max.cols)
-    {
-      k <- k+1
-    }
-    m <- m+1
-  }
-  
-  pch.vals     = rev(pch.vals)
-  
-  
-  if (is.na(cluster[1]))
-  {
-    for (i in 1:length(unique(most.likely.cluster)))
-    {
-      
-      cluster.muts <- TCGA.plot[TCGA.plot$mutation_id%in%names(which(most.likely.cluster==i)),,drop=FALSE]
-      points(cluster.muts$Start_pos
-             ,cluster.muts$mut.multi
-             ,cex=0.7
-             ,pch=pch.vals[i]
-             ,col=cols[i]
-             ,bg =cols.opac[i] ) # ca
-      
-      
-      
-    }
-    
-  }
-  if (!is.na(cluster[1]))
-  {
-    for (i in cluster)
-    {
-      
-      cluster.muts <- TCGA.plot[TCGA.plot$mutation_id%in%names(which(most.likely.cluster==i)),,drop=FALSE]
-      points(cluster.muts$Start_pos
-             ,cluster.muts$mut.multi
-             ,cex=0.7
-             ,pch=pch.vals[as.numeric(i)]
-             ,col=cols[i]
-             ,bg =cols.opac[as.numeric(i)] ) # ca
-      
-      
-      
-    }
-    
-  }
-  
-  
-  
-  
-  
-  
-  
-  mtext(side=3
-        ,at=fun.chrom.mean(seg.mat.plot[,2:4])
-        ,text=sort(unique(seg.mat.plot[,2]))
-        ,cex=seq(0.6,0.4,length.out=length(unique(seg.mat.plot[,2])))
-        ,line=-1
-        #,lwd=0.5
-  )
-  
-  
-}
-
-
 plot.simpleClusters.raw    <- function( seg.mat.patient
                                         , TCGA.earlyLate
-                                        #, TCGA.purity
                                         , TCGA.barcode=""
-                                        #, prob.early=0.75
-                                        #, prob.late=0.75
                                         , max.cpn = 5
-                                        , min.probes = 10
+#                                        , min.probes = 10
                                         , sub.clonal = 1
                                         , min.vaf.present = 0.01
                                         , most.likely.cluster
@@ -1818,14 +1593,11 @@ plot.simpleClusters.raw    <- function( seg.mat.patient
 determinePhylogeny <- function(regionList
                                ,mostLikelyClusters
                                ,driverCat=c(1:3)
-                               ,ccf.type ='phylo.ccf'
+                               ,ccf.type ='phylo.ccf.PyClone'
                                ,mutTable
-                               #,pyclone.results
-                               #,min.thresh=0.05
 )
 {
-  suppressPackageStartupMessages(library(plyr))
-  suppressPackageStartupMessages(library(wordcloud))
+
   no.optima = length(unique(mostLikelyClusters))
   max.cols = 12
   require(RColorBrewer)
@@ -1872,7 +1644,7 @@ determinePhylogeny <- function(regionList
       layout(rbind(1,2))
       par(mar=c(0.2,5,5,5))
       
-      for (cl in unique(mostLikelyClusters))
+      for (cl in sort(unique(most.likely.cluster)))
       {
         
         cl.nr             <-  length(which(unlist(region.mut[,'phyloCCF_PyClone'])!=0))

@@ -9,22 +9,24 @@ suppressPackageStartupMessages(library(wordcloud))
 suppressPackageStartupMessages(library(sequenza))
 suppressPackageStartupMessages(library(bootstrap))
 suppressPackageStartupMessages(library(boot))
+suppressPackageStartupMessages(library(plyr))
+suppressPackageStartupMessages(library(wordcloud))
 
 options(expressions = 500000)
 
 ############################################################################################### Command line arguments
 ######################################################################################################################
-cmdArgs             <- commandArgs(trailingOnly = TRUE);
-patient             <- cmdArgs[1];
-saveDir             <- cmdArgs[2];
-ascatDir            <- cmdArgs[3];
-snvDir              <- cmdArgs[4];
-PyClone             <- cmdArgs[5];
+cmdArgs                  <- commandArgs(trailingOnly = TRUE);
+patient                  <- cmdArgs[1];
+saveDir                  <- cmdArgs[2];
+ascatDir                 <- cmdArgs[3];
+snvDir                   <- cmdArgs[4];
+PyClone                  <- cmdArgs[5];
 template.config.yaml     <- cmdArgs[6];
-PyCloneFunctions    <- cmdArgs[7]
+PyCloneFunctions         <- cmdArgs[7]
 
 interactive          <- FALSE
-run.pyclone          <- FALSE
+run.pyclone          <- TRUE
 
 # IMPORTANT #
 # The following script is fully dependent on PyClone
@@ -34,12 +36,12 @@ run.pyclone          <- FALSE
 if(interactive)
 {
   patient              <- "LMS025"
-  saveDir              <- "~/Documents/Work/AnalysisPipeline/" 
-  ascatDir             <- "~/Documents/Work/AnalysisPipeline/ASCAT/"
-  snvDir               <- "~/Documents/Work/AnalysisPipeline/SNV/"  
-  PyClone              <- "/farm/babs/redhat6/software/python/bin/PyClone"
-  template.config.yaml <- "~/Documents/Work/AnalysisPipeline/template.config.yaml"
-  PyCloneFunctions     <- "~/Documents/Work/AnalysisPipeline/clonalDissectionFunctions.R"
+  saveDir              <- "/farm/home/lr-tct-lif/mcgran01/clonalDissectionPipeLine/" 
+  ascatDir             <- "/farm/home/lr-tct-lif/mcgran01/clonalDissectionPipeLine/ExampleFiles/ASCAT/"
+  snvDir               <- "/farm/home/lr-tct-lif/mcgran01/clonalDissectionPipeLine/ExampleFiles/SNV/"  
+  PyClone              <- "/farm/babs/redhat6/software/python-2.7.3/bin/PyClone"
+  template.config.yaml <- "/farm/home/lr-tct-lif/mcgran01/clonalDissectionPipeLine/ExampleFiles/template.config.yaml"
+  PyCloneFunctions     <- "/farm/home/lr-tct-lif/mcgran01/clonalDissectionPipeLine/clonalDissectionFunctions.R"
 }
 
 #######  Source helper functions ######
@@ -50,6 +52,7 @@ source(PyCloneFunctions)
 ########  Define your own parameters  ##########
 # it is assumed that you have applied filters to your mutation calls
 # e.g. depth and p.val thresholds
+# The following script essentially assumes all mutations are correct
 
 sample             <- patient
 new.dir            <- paste(saveDir,"/",patient,"_PyClone_phylo/",sep="")
@@ -76,7 +79,6 @@ if( !file.exists(new.dir))
 
 # first of all, let's load the data we need ####
 # mutation.table
-# Note, the mutation table must have the postfix SNV.xls
 mut.table.loc     <- list.files(snvDir,full.names=TRUE)
 if(length(mut.table.loc)!=1)
 {
@@ -96,7 +98,6 @@ seg.mat.copy      <- get(segRData)
 
 
 # at present we can only reliably use autosomal mutations, restrict to chromosomes 1 to 22 ####
-
 mut.table      <- mut.table[mut.table$chr%in%1:22,,drop=FALSE]
 seg.mat.copy   <- seg.mat.copy[seg.mat.copy$chr%in%1:22,,drop=FALSE]
 seg.mat.copy$sample <- gsub("-","\\.",seg.mat.copy$sample)
@@ -120,15 +121,14 @@ cellularity           <- rep(NA,length(regions.to.use))
 # Let's plot the copy number. 
 patient.list      <- list()
 phylo.region.list <- list()
-cellularity           <- rep(NA,length(regions.to.use))
+cellularity       <- rep(NA,length(regions.to.use))
 
 pdf(paste(new.dir, sample, ".subclonal.mut.cpn.pdf",sep=""),width=6,height=3)
 {
   lyout <- rbind(c(rep(1,9),2))
   layout(lyout)
-  #region.mut.table <- mut.table[mut.table[,gsub("-","\\.",paste(region,".VAF",sep=""))]>min.vaf,,drop=FALSE]
-  region.mut.table <- mut.table
   
+  region.mut.table <- mut.table
   region.seg.copy  <- seg.mat.copy[seg.mat.copy$SampleID%in%region,,drop=FALSE]
   region.seg.phylo <- seg.mat.phylo[seg.mat.phylo$SampleID%in%region,,drop=FALSE]
   pyclone.table    <- data.frame(t(sapply(1:nrow(region.mut.table),identify.subclonal.mut.copy.number.ascat,region.mut.table,region.seg.phylo,region,sample))
@@ -139,12 +139,8 @@ pdf(paste(new.dir, sample, ".subclonal.mut.cpn.pdf",sep=""),width=6,height=3)
   
   
   # let's load the purity estimate from VAF purity
- 
-  sample.purity   <- region.seg.copy$ACF[1]
+   sample.purity   <- region.seg.copy$ACF[1]
 
-  #
-  
-  
   pyclone.table   <- pyclone.table[as.numeric(pyclone.table$ref_counts)+as.numeric(pyclone.table$var_counts)>=1,,drop=FALSE]
   region.phyloCCF                                                          <- subclonalDissection(region=region,complete.mutation.table=pyclone.table,purity=sample.purity,order.by.pos = TRUE)
   phylo.region.list[[region]]                                              <- region.phyloCCF
@@ -163,18 +159,14 @@ pdf(paste(new.dir, sample, ".subclonal.mut.cpn.pdf",sep=""),width=6,height=3)
   colnames(sub.mat.copy)[5]  <- 'nr.probes'
   
   
-  #pdf(early.late.pdf)
+  
   par(mar=c(5,4,5,0.2))
 
   
   par(lend=1)
-  #layout(rbind(c(rep(1,9),2)))
   plot.EarlyOrLate.raw(seg.mat.patient=sub.mat.copy
                        ,TCGA.earlyLate=region.phyloCCF
                        ,TCGA.purity=sample.purity
-                       #,TCGA.barcode=region
-                       #,prob.early=prob.early
-                       #,prob.late=prob.late
                        ,sub.clonal=1
   )
   mtext(unlist(strsplit(region,split="\\."))[2], side=2,cex=1,line=2,las=2)
@@ -210,7 +202,6 @@ dev.off()
 # let's run PyClone, but correct for copy number before running
 
 region.mut.table <- mut.table
-  
 region.seg.copy  <- seg.mat.phylo[seg.mat.phylo$SampleID%in%region,,drop=FALSE]
 pyclone.table    <- data.frame(t(sapply(1:nrow(region.mut.table),identify.subclonal.mut.copy.number.ascat,region.mut.table,region.seg.copy,region,sample))
                                  ,stringsAsFactors=FALSE)
@@ -224,8 +215,8 @@ error.muts.table       <- paste(new.dir,"/",region,".error.muts.tsv",sep="")
   
   
   
-  if (length(error.muts)>=1)
-  {
+if (length(error.muts)>=1)
+{
     write.table  (error.muts
                   ,sep="\t"
                   ,quote=FALSE
@@ -295,11 +286,7 @@ error.muts.table       <- paste(new.dir,"/",region,".error.muts.tsv",sep="")
   }
   
   cat('\n')
-  #system(cmd)
   
-  
-
-
 
 
 # Next let's create a configuration file
@@ -323,13 +310,11 @@ for (region in names(phylo.region.list))
 {
   
   sample.config       <- gsub("TCGA.barcode", region, sample.lines)
-  #pyclone.yaml        <- paste(new.dir,"/",region,".yaml",sep="")
   pyclone.yaml        <- paste(region,".yaml",sep="")
   sample.config       <- gsub("mutations.yaml", pyclone.yaml, sample.config)
   region.purity       <- 0.5
   
   sample.config       <- gsub("value: 1.0", paste("value: ", signif(region.purity,3), sep=""), sample.config)
-  
   sample.config       <- sample.config[1:8]
   
   write.table(sample.config,file=pyclone.config.yaml
@@ -341,7 +326,6 @@ for (region in names(phylo.region.list))
 }
 
 # Run the PyClone analysis using the PyClone analyse 
-
 cmd <- paste(PyClone
              ," analyse "
              ,pyclone.config.yaml
@@ -358,7 +342,6 @@ if(run.pyclone)
 cat('\n')
 
 # Load the results
-
 sample.results <- paste(new.dir,"/",sample,'.results.tsv',sep="")
 cmd <- paste(PyClone
              ," build_table "
@@ -401,17 +384,9 @@ cols.opac      = paste(cols,'99',sep="")
 
 
 # let's plot the copy number clusters
-
-#source("/farm/home/lr-tct-lif/mcgran01/Current_Projects/tracerx-pipeline/pyclone.functions.R")
-
-
 pdf(paste(new.dir,"/",patient,"_pyclone_cluster_assignment_copynumber",".pdf",sep=""),width=6,height=3)
 plot.region.mutCopyNum(phylo.region.list = phylo.region.list,seg.mat.copy = seg.mat.copy,mostLikelyClusters = most.likely.cluster,plot.separate.clusters = TRUE)
 dev.off()
-
-
-# let's get confidence intervals for each of the mutations 
-# (and also plot the confidence intervals of the driver mutations)
 
 # first, let's import the trace files
 region.trace              <- list()
@@ -513,7 +488,6 @@ for (region in regions.to.use)
 }
 dev.off()
 
-
 pdf(paste(new.dir,"/",patient,"_pyclone_clustersPatient",".pdf",sep=""),
     ,useDingbats=FALSE
     ,width=4.5,height=3.85
@@ -561,11 +535,11 @@ mut.table$MutCopyNum     <- MutCopyNum
 # let's write the new mutation table to the new directory
 
 write.table(mut.table, file=paste(new.dir,patient,".clonalDissection.txt",sep=""),quote=FALSE,sep="\t",col.names=NA)
-
+cat(paste('\n', 'output File written to:',paste(new.dir,patient,".clonalDissection.txt\n",sep=""),sep=""))
 
 # Finally, let's put this into a megatable, and write this to an appropriate place
-save(phylo.region.list,file=paste(new.dir,sample,'.PhyloRegionList.RData',sep=""))
+# save(phylo.region.list,file=paste(new.dir,sample,'.PhyloRegionList.RData',sep=""))
+sessInfo <- sessionInfo()
 save.image(file=paste(new.dir, sample, ".PyClone.RData",sep=""))
 
-print(sessionInfo());
 
