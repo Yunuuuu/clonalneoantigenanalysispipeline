@@ -4,8 +4,6 @@ This analysis pipeline is designed to run a modified version of PyClone - allowi
 An excellent set of instructions of how to get this up and running can be found at 
 https://bitbucket.org/aroth85/pyclone/wiki/Home
 
-This analysis pipeline was implemented in the paper https://www.ncbi.nlm.nih.gov/pubmed/?term=26940869. If you use this tool, please cite this paper. 
-
 The analysis pipeline can work as a command line tool. The following input is required:
 
   <patient>              # The identifier for the patient/sample
@@ -25,3 +23,5 @@ An example of each and every file can be found at https://bitbucket.org/nmcgrana
 An example implementation of the script is as follows:
 
 /usr/bin/Rscript ~/Downloads/ExampleFiles/clonalDissectionPyClone.R LMS025 ~/Documents/Work/AnalysisPipeline/ ~/Downloads/ExampleFiles/ASCAT/ ~/Downloads/ExampleFiles/SNV/ /farm/babs/redhat6/software/python/bin/PyClone ~/Downloads/ExampleFiles/template.config.yaml ~/Downloads/ExampleFiles/clonalDissectionFunctions.R
+
+This analysis pipeline was implemented in the paper https://www.ncbi.nlm.nih.gov/pubmed/?term=26940869. If you use this tool, please cite this paper. The results on each patient used, can be found at: https://bitbucket.org/nmcgranahan/clonalneoantigenanalysispipeline/downloads
