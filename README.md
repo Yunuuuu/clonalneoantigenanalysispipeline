@@ -24,4 +24,4 @@ An example of each and every file can be found at https://bitbucket.org/nmcgrana
 
 An example implementation of the script is as follows:
 
-Rscript ~/Documents/Work/clonalDissectionPyClone.R LMS025 ~/Documents/Work/AnalysisPipeline/ ~/Documents/Work/AnalysisPipeline/ASCAT/ ~/Documents/Work/AnalysisPipeline/SNV/ /farm/babs/redhat6/software/python/bin/PyClone ~/Documents/Work/AnalysisPipeline/template.config.yaml ~/Documents/Work/AnalysisPipeline/clonalDissectionFunctions.R
+Rscript ~/Documents/Work/AnalysisPipeline/clonalDissectionPyClone.R LMS025 ~/Documents/Work/AnalysisPipeline/ ~/Documents/Work/AnalysisPipeline/ASCAT/ ~/Documents/Work/AnalysisPipeline/SNV/ /farm/babs/redhat6/software/python/bin/PyClone ~/Documents/Work/AnalysisPipeline/template.config.yaml ~/Documents/Work/AnalysisPipeline/clonalDissectionFunctions.R
