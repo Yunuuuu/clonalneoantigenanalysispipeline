@@ -18,6 +18,8 @@ The analysis pipeline can work as a command line tool. The following input is re
 
   <template.config.yaml> # Where is the pyClone template? (a full path to the file)
 
+  <clonalDissectionFunctions.R> # where is the clonalDissectionFunctions.R file located? (a full path to the file)
+
 An example of each and every file can be found at https://bitbucket.org/nmcgranahan/clonalneoantigenanalysispipeline/downloads/ExampleFiles.zip
 
 An example implementation of the script is as follows:
