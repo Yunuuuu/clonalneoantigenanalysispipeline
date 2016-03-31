@@ -28,6 +28,8 @@ An example implementation of the script is as follows:
 
 /usr/bin/Rscript ~/Downloads/ExampleFiles/clonalDissectionPyClone.R LMS025 ~/Documents/Work/AnalysisPipeline/ ~/Downloads/ExampleFiles/ASCAT/ ~/Downloads/ExampleFiles/SNV/ /farm/babs/redhat6/software/python/bin/PyClone ~/Downloads/ExampleFiles/template.config.yaml ~/Downloads/ExampleFiles/clonalDissectionFunctions.R
 
+Note, the script assumes there is only one mutation table in the snvDir and also only one segmented copy number table in the ascatDir. 
+
 The output should be produced in a folder named <patient>_PyClone_phylo. The results of the analysis will be a table called <patient>.clonalDissection.txt. A number of figures will also be produced. 
 
 This analysis pipeline was implemented in the paper https://www.ncbi.nlm.nih.gov/pubmed/?term=26940869. If you use this tool, please cite this paper. The results on each tumour used, can be found at: https://bitbucket.org/nmcgranahan/clonalneoantigenanalysispipeline/downloads
