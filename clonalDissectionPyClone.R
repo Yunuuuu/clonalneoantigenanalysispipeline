@@ -46,7 +46,17 @@ if(interactive)
 
 #######  Source helper functions ######
 
+# Check correct number of command Arguments have been listed. 
+if(!interactive)
+{
+  if(length(cmdArgs)!=7)
+  {
+    stop(paste('Incorrect arguments given. Following arguments are needed:\n<patient> <save.dir> <ASCAT.dir> <SNV.dir> <PyClone.location> <PyClone.template.yaml> <clonalDissectionFunctions.location>\nFor details see README.'))
+  }
+}
+
 source(PyCloneFunctions)
+
 
 
 ########  Define your own parameters  ##########
@@ -82,7 +92,7 @@ if( !file.exists(new.dir))
 mut.table.loc     <- list.files(snvDir,full.names=TRUE)
 if(length(mut.table.loc)!=1)
 {
-  stop("Unable to find one mut.table.loc.\n")  
+  stop("Unable to find mut.table.loc.\n")  
 }
 
 # Load the mutation table
@@ -93,6 +103,12 @@ mut.table         <- read.table(mut.table.loc
 
 # load the segmented copy number table
 ascatsegRData     <- grep('ascat.seg.RData$',list.files(ascatDir,full.names=TRUE),value=TRUE)
+
+if(length(ascatsegRData)!=1)
+{
+  stop("Unable to find ascat.seg.RData")  
+}
+
 segRData          <- load(ascatsegRData)
 seg.mat.copy      <- get(segRData)
 
@@ -291,6 +307,13 @@ if (length(error.muts)>=1)
 
 # Next let's create a configuration file
 pyclone.config.yaml <- paste(new.dir,"/",sample,".config.yaml",sep="")
+
+if(file.exists(template.config.yaml))
+{
+  stop("Unable to find template.config.yaml")  
+}
+
+
 pyclone.config      <- readLines(template.config.yaml)
 start.samples       <- (grep("samples",pyclone.config)+1)
 end.samples         <- length(pyclone.config)
